@@ -1,0 +1,14 @@
+rpc: # renamed because duplicate product and component name is confusing
+  - rpc-openstack
+  - rpc-maas
+  - rpc-ceph # optional
+  - rpc-hummingbird # optional
+
+ceph:
+  - rpc-ceph
+  - rpc-maas
+
+hummingbird:
+  - rpc-hummingbird
+  - rpc-maas
+  - rpc-openstack # required for auth (to be verified)
