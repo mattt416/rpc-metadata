@@ -13,16 +13,17 @@ def get_component_list(product=None):
     c = []
     for p in data['products']:
         if (product and product == p['name']) or product is None:
-            for component in p['components']:
-                if component['name'] not in c:
-                    c.append(component['name'])
+            for version in p['versions']:
+                for component in version['components']:
+                    if component['name'] not in c:
+                        c.append(component['name'])
     return c
 
 
 def get_product_list(component=None):
     p = []
     for product in data['products']:
-        if (component and component in get_components(product['name'])) or component is None:
+        if (component and component in get_component_list(product['name'])) or component is None:
             p.append(product['name'])
     return p
 
@@ -47,13 +48,16 @@ def components():
 
 @click.command()
 @click.argument('product', nargs=1)
-def clone(product):
+@click.argument('version', nargs=1)
+def clone(product, version):
     for p in data['products']:
         if p['name'] == product:
-            for c in p['components']:
-                clone_dir = '/opt/%s' % c['name']
-                print('Cloning %s to %s ...' % (c['name'], clone_dir))
-                git.Repo.clone_from(c['repo'], clone_dir, branch=c['version'])
+            for v in p['versions']:
+                if v['version'] == version:
+                    for c in v['components']:
+                        clone_dir = '/opt/%s' % c['name']
+                        print('Cloning %s to %s ...' % (c['name'], clone_dir))
+                        git.Repo.clone_from(c['repo'], clone_dir, branch=c['version'])
 
 
 cli.add_command(products)
