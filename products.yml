@@ -1,14 +1,38 @@
-rpc: # renamed because duplicate product and component name is confusing
-  - rpc-openstack
-  - rpc-maas
-  - rpc-ceph # optional
-  - rpc-hummingbird # optional
-
-ceph:
-  - rpc-ceph
-  - rpc-maas
-
-hummingbird:
-  - rpc-hummingbird
-  - rpc-maas
-  - rpc-openstack # required for auth (to be verified)
+---
+products:
+  - name: rpc-openstack-swift
+    components:
+      - name: rpc-openstack
+        version: 1.2.3
+      - name: rpc-maas
+        version: 1.2.3
+  - name: rpc-openstack-ceph
+    components:
+      - name: rpc-openstack
+        version: 1.2.3
+      - name: rpc-maas
+        version: 1.2.3
+      - name: rpc-ceph
+        version: 1.2.3
+  - name: rpc-openstack-hummingbird
+    components:
+      - name: rpc-openstack
+        version: 1.2.3
+      - name: rpc-maas
+        version: 1.2.3
+      - name: rpc-hummingbird
+        version: 1.2.3
+  - name: ceph
+    components:
+      - name: rpc-ceph
+        version: 1.2.3
+      - name: rpc-maas
+        version: 1.2.3
+  - name: hummingbird
+    components:
+      - name: rpc-hummingbird
+        version: 1.2.3
+      - name: rpc-maas
+        version: 1.2.3
+      - name: rpc-openstack # required for auth (to be verified)
+        version: 1.2.3
