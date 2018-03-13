@@ -40,7 +40,7 @@ products:
     components:
       - name: rpc-component-1
         repo: https://github.com/mattt416/rpc-component-1
-        version: 0.0.1
+        version: master
       - name: rpc-component-2
         repo: https://github.com/mattt416/rpc-component-2
-        version: 0.0.1
+        version: master
