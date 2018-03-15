@@ -1,42 +1,6 @@
+# NOTE(mattt): This file is currently not used, see all_components.yml instead.
 ---
-products:
-#  - name: rpc-openstack-swift
-#    components:
-#      - name: rpc-openstack
-#        version: 1.2.3
-#      - name: rpc-maas
-#        version: 1.2.3
-#  - name: rpc-openstack-ceph
-#    components:
-#      - name: rpc-openstack
-#        version: 1.2.3
-#      - name: rpc-maas
-#        version: 1.2.3
-#      - name: rpc-ceph
-#        version: 1.2.3
-#  - name: rpc-openstack-hummingbird
-#    components:
-#      - name: rpc-openstack
-#        version: 1.2.3
-#      - name: rpc-maas
-#        version: 1.2.3
-#      - name: rpc-hummingbird
-#        version: 1.2.3
-#  - name: ceph
-#    components:
-#      - name: rpc-ceph
-#        version: 1.2.3
-#      - name: rpc-maas
-#        version: 1.2.3
-#  - name: hummingbird
-#    components:
-#      - name: rpc-hummingbird
-#        version: 1.2.3
-#      - name: rpc-maas
-#        version: 1.2.3
-#      - name: rpc-openstack # required for auth (to be verified)
-#        version: 1.2.3
-  - name: dummy
+  - name: rpc-product-1
     versions:
       - version: 0.0.1
         components:
