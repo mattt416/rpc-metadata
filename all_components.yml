@@ -1,17 +1,20 @@
 ---
 - name: rpc-component-1
   repo: https://github.com/mattt416/rpc-component-1
-  latest_release: master
-  required_by:
-    - rpc-product-1
+  releases:
+    - version: master
+      depends_on: []
 
 - name: rpc-component-2
   repo: https://github.com/mattt416/rpc-component-2
-  latest_release: master
-  required_by:
-    - rpc-product-1
+  releases:
+    - version: master
+      depends_on: []
 
 - name: rpc-product-1
   repo: https://github.com/mattt416/rpc-product-1
-  latest_release: master
-  required_by: []
+  releases:
+    - version: master
+      depends_on:
+        - rpc-component-1
+        - rpc-component-2
