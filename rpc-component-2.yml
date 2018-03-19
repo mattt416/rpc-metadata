@@ -1,0 +1,8 @@
+---
+name: rpc-component-2
+repo: https://github.com/mattt416/rpc-component-2
+releases:
+  - series: master
+    versions:
+      - version: 1.0.0
+        sha: 459082a722c40003758899b1b29c24cc19df6568
