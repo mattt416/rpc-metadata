@@ -6,3 +6,5 @@ releases:
     versions:
       - version: 1.0.0
         sha: 459082a722c40003758899b1b29c24cc19df6568
+      - version: 1.1.0
+        sha: ed18fd1f7c8bc0db3148ea39a6500cc8f8abb2b6
