@@ -534,10 +534,12 @@ def main():
 
                     commit_changes(dependency_dir, msg)
             elif dependency_subparser == "update-requirements":
+                existing_requirements = load_requirements(dependency_dir)
                 requirements = update_requirements(metadata, components_dir)
-                save_requirements(requirements, dependency_dir)
-                msg = "Update component dependency requirements"
-                commit_changes(dependency_dir, msg)
+                if existing_requirements != requirements:
+                    save_requirements(requirements, dependency_dir)
+                    msg = "Update component dependency requirements"
+                    commit_changes(dependency_dir, msg)
             elif dependency_subparser == "download-requirements":
                 requirements = load_requirements(dependency_dir)
                 download_requirements(
