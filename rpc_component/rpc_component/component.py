@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+from collections import defaultdict
 from copy import deepcopy
 from itertools import takewhile
 from operator import eq, ge, gt, le, lt, ne
@@ -14,10 +15,10 @@ from schema import SchemaError
 import yaml
 
 from rpc_component.schemata import (
-    constraint_key, component_metadata_schema, component_requirements_schema,
-    component_schema, branch_constraint_regex, branch_constraints_schema,
-    repo_url_schema, version_constraint_regex, version_id_schema,
-    version_sha_schema
+    comparison_added_version_schema, constraint_key, component_metadata_schema,
+    component_requirements_schema, component_schema, branch_constraint_regex,
+    branch_constraints_schema, repo_url_schema, version_constraint_regex,
+    version_id_schema, version_sha_schema,
 )
 
 METADATA_FILENAME = "component_metadata.yml"
@@ -54,6 +55,24 @@ def load_component(name, directory):
     filepath = os.path.join(directory, filename)
 
     return load_data(filepath, component_schema)
+
+
+def load_all_components(component_dir, repo_dir, commitish):
+    repo = git.Repo(repo_dir)
+    start_ref = repo.head.commit
+
+    repo.head.reference = repo.commit(commitish)
+    repo.head.reset(index=True, working_tree=True)
+
+    components = []
+    for cf in os.listdir(component_dir):
+        name = cf[:-4]
+        components.append(load_component(name, component_dir))
+
+    repo.head.reference = repo.commit(start_ref)
+    repo.head.reset(index=True, working_tree=True)
+
+    return components
 
 
 def save_component(component, directory, old_component_name=None):
@@ -119,6 +138,50 @@ def update_component(existing, name=None, repo_url=None, is_product=None):
     component.update(**new)
 
     return component_schema.validate(component)
+
+
+def component_difference(a, b):
+    """In a but not b"""
+    diff = {}
+    for k, av in a.items():
+        try:
+            bv = b[k]
+        except KeyError:
+            diff[k] = av
+        else:
+            if av == bv:
+                continue
+            elif k == "releases":
+                release_pairs = defaultdict(lambda: [{}, {}])
+                for r in av:
+                    release_pairs[r["series"]][0] = r
+                for r in bv:
+                    release_pairs[r["series"]][1] = r
+
+                value_diff = []
+                for avv, bvv in release_pairs.values():
+                    sub_value_diff = component_difference(avv, bvv)
+                    if sub_value_diff:
+                        value_diff.append(sub_value_diff)
+
+                if value_diff:
+                    diff[k] = value_diff
+            elif isinstance(av, dict):
+                value_diff = component_difference(av, bv)
+                if value_diff:
+                    diff[k] = value_diff
+            elif isinstance(av, list):
+                value_diff = []
+                for avv in av:
+                    if avv not in bv:
+                        value_diff.append(avv)
+
+                if value_diff:
+                    diff[k] = value_diff
+            else:
+                diff[k] = av
+
+    return diff
 
 
 def update_releases(component, series_name, version, sha):
@@ -436,6 +499,22 @@ def parse_args(args):
     dl_parser = dep_subparsers.add_parser("download-requirements")
     dl_parser.add_argument("--download-dir", default="./")
 
+    com_parser = subparsers.add_parser("compare")
+    com_parser.add_argument(
+        "--from",
+        required=True,
+        help="Git commitish.",
+    )
+    com_parser.add_argument(
+        "--to",
+        required=True,
+        help="Git commitish.",
+    )
+    com_parser.add_argument(
+        "--verify",
+        choices=["version"],
+    )
+
     return vars(parser.parse_args(args))
 
 
@@ -545,6 +624,37 @@ def main():
                 download_requirements(
                     requirements["dependencies"], kwargs["download_dir"]
                 )
+        elif subparser == "compare":
+            from_ = load_all_components(components_dir, releases_dir, kwargs["from"])
+            to = load_all_components(components_dir, releases_dir, kwargs["to"])
+            to_compare = defaultdict(lambda: [{}, {}])
+            for c in from_:
+                to_compare[c["name"]][0] = c
+            for c in to:
+                to_compare[c["name"]][1] = c
+            comparison = {}
+            for name, (f, t) in to_compare.items():
+                deleted = component_difference(f, t)
+                added = component_difference(t, f)
+                if added or deleted:
+                    comparison[name] = {"added": added, "deleted": deleted}
+
+            comparison_yaml = yaml.dump(comparison, default_flow_style=False)
+            if kwargs["verify"] == "version":
+                try:
+                    comparison_added_version_schema.validate(comparison)
+                except SchemaError as e:
+                    raise ComponentError(
+                        "The changes from `{f}` to `{t}` do not represent the "
+                        "addition of a new release version.\nValidation error:"
+                        "\n{e}\nChanges found:\n{c}".format(
+                            f=kwargs["from"],
+                            t=kwargs["to"],
+                            e=e,
+                            c=comparison_yaml,
+                        )
+                    )
+            print(comparison_yaml)
         else:
             raise ComponentError(
                 "The subparser '{sp}' is not recognised.".format(sp=subparser)

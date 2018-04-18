@@ -48,6 +48,29 @@ version_schema = Schema(
         "sha": version_sha_schema,
     },
 )
+comparison_added_version_schema = Schema(
+    And(
+        {
+            And(str, len): {
+                "added": {
+                    "releases": And(
+                        [
+                            {
+                                "versions": And(
+                                    [version_schema],
+                                    lambda vs: len(vs) == 1,
+                                ),
+                            }
+                        ],
+                        lambda rs: len(rs) == 1,
+                    )
+                },
+                "deleted": {},
+            }
+        },
+        lambda cs: len(cs) == 1,
+    )
+)
 
 repo_url_schema = Regex(r"^https://github.com/.+")
 
