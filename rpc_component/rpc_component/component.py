@@ -16,7 +16,8 @@ import yaml
 
 from rpc_component.schemata import (
     comparison_added_version_schema, constraint_key, component_metadata_schema,
-    component_requirements_schema, component_schema, branch_constraint_regex,
+    component_requirements_schema, component_schema,
+    component_single_version_schema, branch_constraint_regex,
     branch_constraints_schema, repo_url_schema, version_constraint_regex,
     version_id_schema, version_sha_schema,
 )
@@ -387,6 +388,17 @@ def commit_changes(repo_dir, message):
     repo.git.commit(message=message)
 
 
+def get_version_series(component, version):
+    for release in component["releases"]:
+        if version in release["versions"]:
+            series = release["series"]
+            break
+    else:
+        raise ComponentError("Version does not exist")
+
+    return series
+
+
 def parse_args(args):
     parser = argparse.ArgumentParser()
 
@@ -654,7 +666,28 @@ def main():
                             c=comparison_yaml,
                         )
                     )
-            print(comparison_yaml)
+                else:
+                    name, data = comparison.popitem()
+                    version = data["added"]["releases"][0]["versions"][0]
+                    component = [c for c in to if c["name"] == name][0]
+                    comp_version = component_single_version_schema.validate(
+                        {
+                            "name": name,
+                            "repo_url": component["repo_url"],
+                            "is_product": component["is_product"],
+                            "release": {
+                                "series": get_version_series(
+                                    component, version
+                                ),
+                                "version": version,
+                            },
+                        }
+                    )
+                    output = yaml.dump(comp_version, default_flow_style=False)
+            else:
+                output = comparison_yaml
+
+            print(output, end="")
         else:
             raise ComponentError(
                 "The subparser '{sp}' is not recognised.".format(sp=subparser)
