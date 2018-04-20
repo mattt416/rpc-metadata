@@ -97,6 +97,18 @@ constraints_schema = Or(
     branch_constraints_schema,
 )
 
+component_single_version_schema = Schema(
+    {
+        "name": And(str, len),
+        "repo_url": repo_url_schema,
+        "is_product": bool,
+        "release": {
+            "series": And(str, len),
+            "version": version_schema,
+        },
+    }
+)
+
 component_schema = Schema(
     {
         "name": And(str, len),
