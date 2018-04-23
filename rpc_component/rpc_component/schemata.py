@@ -1,7 +1,7 @@
 from functools import partial
 import re
 
-from schema import And, Or, Regex, Schema
+from schema import And, Optional, Or, Regex, Schema
 
 
 def sorted_versions(versions):
@@ -48,6 +48,7 @@ version_schema = Schema(
         "sha": version_sha_schema,
     },
 )
+
 comparison_added_version_schema = Schema(
     And(
         {
@@ -56,6 +57,7 @@ comparison_added_version_schema = Schema(
                     "releases": And(
                         [
                             {
+                                Optional("series"): And(str, len),
                                 "versions": And(
                                     [version_schema],
                                     lambda vs: len(vs) == 1,
