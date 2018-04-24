@@ -166,6 +166,18 @@ component_requirements_schema = Schema(
     }
 )
 
+comparison_added_component_schema = Schema(
+    And(
+        {
+            And(str, len): {
+                "added": And(component_schema),
+                "deleted": {},
+            }
+        },
+        lambda cs: len(cs) == 1,
+    )
+)
+
 
 def _version_key(version, regex=None):
     version_id = version["version"]
