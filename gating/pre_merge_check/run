@@ -12,10 +12,10 @@ popd
 component_count=0
 non_component_count=0
 
-changes=$(git log --pretty=format: --name-only --no-merges -1)
+changes=$(git diff --pretty=format: --name-only master HEAD)
 
 for change in ${changes}; do
-  if [[ "${change}" =~ "components/" ]]; then
+  if [[ "${change}" =~ ^components/ ]]; then
     component_count=$(( ${component_count} + 1 ))
   else
     non_component_count=$(( ${non_component_count} + 1 ))
@@ -35,13 +35,11 @@ done
   || echo '  [OK] A component and non-component change was not submitted at the same time'
 
 if [[ ${component_count} -eq 1 ]]; then
-  from=$(git log --pretty=format:%H  --no-merges -n 1 --skip 1)
-  to=$(git log --pretty=format:%H --no-merges -1)
   fail_count=0
 
   ## Test 3: Check if a new component is being released
 
-  component --releases-dir . compare --from ${from} --to ${to} --verify registration
+  component --releases-dir . compare --from master --to HEAD --verify registration
 
   [[ $? -ne 0 ]] \
     && { echo '[FAIL] The component registration is not valid'; fail_count=$(( ${fail_count} + 1 )); } \
@@ -49,7 +47,7 @@ if [[ ${component_count} -eq 1 ]]; then
 
   ## Test 4: Check if a component release is valid
 
-  component --releases-dir . compare --from ${from} --to ${to} --verify version
+  component --releases-dir . compare --from master --to HEAD --verify version
 
   [[ $? -ne 0 ]] \
     && { echo '[FAIL] The component release is not valid'; fail_count=$(( ${fail_count} + 1 )); } \
