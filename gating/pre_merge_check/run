@@ -11,11 +11,17 @@ popd
 
 component_count=0
 non_component_count=0
+# The component cli tool takes a `from` and `to` SHA. Since we don't know how
+# many commits are in the PR, we use `master` as the `from` SHA and `HEAD` as
+# the `to` SHA. This allows us to compare against the last committed commit
+# and the changes proposed in the PR.
+src_branch="master"
+pr_branch="HEAD"
 
-changes=$(git diff --pretty=format: --name-only master HEAD)
+changes=$(git diff --pretty=format: --name-only ${src_branch} ${pr_branch})
 
 for change in ${changes}; do
-  if [[ "${change}" =~ ^components/ ]]; then
+  if [[ "${change}" =~ ^"components/" ]]; then
     component_count=$(( ${component_count} + 1 ))
   else
     non_component_count=$(( ${non_component_count} + 1 ))
@@ -39,7 +45,7 @@ if [[ ${component_count} -eq 1 ]]; then
 
   ## Test 3: Check if a new component is being released
 
-  component --releases-dir . compare --from master --to HEAD --verify registration
+  component --releases-dir . compare --from ${src_branch} --to ${pr_branch} --verify registration
 
   [[ $? -ne 0 ]] \
     && { echo '[FAIL] The component registration is not valid'; fail_count=$(( ${fail_count} + 1 )); } \
@@ -47,7 +53,7 @@ if [[ ${component_count} -eq 1 ]]; then
 
   ## Test 4: Check if a component release is valid
 
-  component --releases-dir . compare --from master --to HEAD --verify version
+  component --releases-dir . compare --from ${src_branch} --to ${pr_branch} --verify version
 
   [[ $? -ne 0 ]] \
     && { echo '[FAIL] The component release is not valid'; fail_count=$(( ${fail_count} + 1 )); } \
