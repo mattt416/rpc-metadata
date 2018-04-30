@@ -15,9 +15,9 @@ from schema import SchemaError
 import yaml
 
 from rpc_component.schemata import (
-    comparison_added_version_schema, constraint_key, component_metadata_schema,
-    component_requirements_schema, component_schema,
-    component_single_version_schema, branch_constraint_regex,
+    comparison_added_component_schema, comparison_added_version_schema,
+    constraint_key, component_metadata_schema, component_requirements_schema,
+    component_schema, component_single_version_schema, branch_constraint_regex,
     branch_constraints_schema, repo_url_schema, version_constraint_regex,
     version_id_schema, version_sha_schema,
 )
@@ -524,7 +524,7 @@ def parse_args(args):
     )
     com_parser.add_argument(
         "--verify",
-        choices=["version"],
+        choices=["version", "registration"],
     )
 
     return vars(parser.parse_args(args))
@@ -684,6 +684,22 @@ def main():
                         }
                     )
                     output = yaml.dump(comp_version, default_flow_style=False)
+            elif kwargs["verify"] == "registration":
+                try:
+                    comparison_added_component_schema.validate(comparison)
+                except SchemaError as e:
+                    raise ComponentError(
+                        "The changes from `{f}` to `{t}` do not represent the "
+                        "registration of a new component.\nValidation error:"
+                        "\n{e}\nChanges found:\n{c}".format(
+                            f=kwargs["from"],
+                            t=kwargs["to"],
+                            e=e,
+                            c=comparison_yaml,
+                        )
+                    )
+                else:
+                    output = comparison_yaml
             else:
                 output = comparison_yaml
 
