@@ -11,4 +11,6 @@ releases:
     version: r1.2.0
   - sha: a4a853770d3b9b3ca79b99a1d52a6e391e69e5d0
     version: r1.3.0
+  - sha: e2686f39061d185c11245ad5a1389547fae10be2
+    version: r1.4.0
 repo_url: https://github.com/mattt416/rpc-product-1
