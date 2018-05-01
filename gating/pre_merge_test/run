@@ -1,6 +1,9 @@
-#!/bin/bash -xeu
+#!/bin/bash -xe
 
 RC=0
+
+# TODO(mattt): Create custom Dockerfile with python3 in it
+which python3 || { apt-get update; apt-get install -y python3-minimal; }
 
 virtualenv --python python3 .venv3
 set +x; . .venv3/bin/activate; set -x
@@ -15,7 +18,7 @@ non_component_count=0
 # many commits are in the PR, we use `master` as the `from` SHA and `HEAD` as
 # the `to` SHA. This allows us to compare against the last committed commit
 # and the changes proposed in the PR.
-src_branch="master"
+src_branch="remotes/origin/master"
 pr_branch="HEAD"
 
 changes=$(git diff --pretty=format: --name-only ${src_branch} ${pr_branch})
