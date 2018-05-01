@@ -399,6 +399,27 @@ def get_version_series(component, version):
     return series
 
 
+def get_version_by_id(component, version_id):
+    for release in component["releases"]:
+        for version in release["versions"]:
+            if version["version"] == version_id:
+                return version
+    else:
+        raise ComponentError("Version does not exist")
+
+
+def get_pred_version(component, version):
+    succ = None
+    for release in component["releases"]:
+        for v in reversed(release["versions"]):
+            if succ == version:
+                return v
+            else:
+                succ = v
+    else:
+        raise ComponentError("Version does not exist")
+
+
 def parse_args(args):
     parser = argparse.ArgumentParser()
 
@@ -430,6 +451,18 @@ def parse_args(args):
 
     c_subparser = c_parser.add_subparsers(dest="component_subparser")
     c_subparser.required = True
+
+    cg_parser = c_subparser.add_parser("get")
+    cg_parser.add_argument(
+        "--version",
+        help="Get a single version.",
+    )
+    cg_parser.add_argument(
+        "--pred",
+        default=False,
+        action="store_true",
+        help="Get the predecessor of a single version.",
+    )
 
     ca_parser = c_subparser.add_parser("add")
     ca_parser.add_argument(
@@ -550,7 +583,37 @@ def main():
             existing_component = load_component(component_name, components_dir)
 
             component_subparser = kwargs.pop("component_subparser")
-            if component_subparser == "add":
+            if component_subparser == "get":
+                updated_component = None
+                if not existing_component:
+                    raise ComponentError(
+                        "Component '{name}' does not exist.".format(
+                            name=component_name,
+                        )
+                    )
+                elif not kwargs["version"]:
+                    output = existing_component
+                else:
+                    version = get_version_by_id(
+                        existing_component, kwargs["version"]
+                    )
+                    if kwargs["pred"]:
+                        version = get_pred_version(existing_component, version)
+                    output = component_single_version_schema.validate(
+                        {
+                            "name": existing_component["name"],
+                            "repo_url": existing_component["repo_url"],
+                            "is_product": existing_component["is_product"],
+                            "release": {
+                                "series": get_version_series(
+                                    existing_component, version
+                                ),
+                                "version": version,
+                            },
+                        }
+                    )
+                print(yaml.dump(output, default_flow_style=False), end="")
+            elif component_subparser == "add":
                 if existing_component:
                     raise ComponentError("The component already exists.")
                 updated_component = add_component(
@@ -574,7 +637,7 @@ def main():
                     )
                 )
 
-            if updated_component != existing_component:
+            if updated_component and updated_component != existing_component:
                 if existing_component:
                     if updated_component["name"] != existing_component["name"]:
                         old_name = existing_component["name"]
@@ -637,8 +700,12 @@ def main():
                     requirements["dependencies"], kwargs["download_dir"]
                 )
         elif subparser == "compare":
-            from_ = load_all_components(components_dir, releases_dir, kwargs["from"])
-            to = load_all_components(components_dir, releases_dir, kwargs["to"])
+            from_ = load_all_components(
+                components_dir, releases_dir, kwargs["from"]
+            )
+            to = load_all_components(
+                components_dir, releases_dir, kwargs["to"]
+            )
             to_compare = defaultdict(lambda: [{}, {}])
             for c in from_:
                 to_compare[c["name"]][0] = c
