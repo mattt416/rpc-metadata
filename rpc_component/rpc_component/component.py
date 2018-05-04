@@ -382,9 +382,9 @@ def update_releases_repo(repo_url):
     return repo_dir
 
 
-def commit_changes(repo_dir, message):
+def commit_changes(repo_dir, files, message):
     repo = git.Repo(repo_dir)
-    repo.git.add(all=True)
+    repo.git.add(files)
     repo.git.commit(message=message)
 
 
@@ -652,7 +652,7 @@ def main():
                     name=updated_component["name"],
                 )
 
-                commit_changes(releases_dir, msg)
+                commit_changes(releases_dir, components_dir, msg)
         elif subparser == "release":
             component_name = kwargs.pop("component_name")
             existing_component = load_component(component_name, components_dir)
@@ -672,7 +672,7 @@ def main():
                     version=kwargs["version"],
                 )
 
-                commit_changes(releases_dir, msg)
+                commit_changes(releases_dir, components_dir, msg)
         elif subparser == "dependency":
             dependency_dir = kwargs.pop("dependency_dir")
             metadata = load_metadata(dependency_dir)
@@ -686,14 +686,14 @@ def main():
                         name=kwargs["name"],
                     )
 
-                    commit_changes(dependency_dir, msg)
+                    commit_changes(dependency_dir, METADATA_FILENAME, msg)
             elif dependency_subparser == "update-requirements":
                 existing_requirements = load_requirements(dependency_dir)
                 requirements = update_requirements(metadata, components_dir)
                 if existing_requirements != requirements:
                     save_requirements(requirements, dependency_dir)
                     msg = "Update component dependency requirements"
-                    commit_changes(dependency_dir, msg)
+                    commit_changes(dependency_dir, REQUIREMENTS_FILENAME, msg)
             elif dependency_subparser == "download-requirements":
                 requirements = load_requirements(dependency_dir)
                 download_requirements(
