@@ -5,7 +5,7 @@ from schema import And, Optional, Or, Regex, Schema
 
 
 def sorted_versions(versions):
-    return sorted(versions, key=version_key)
+    return sorted(versions, key=lambda v: version_key(v["version"]))
 
 
 def is_sorted_versions(versions):
@@ -23,11 +23,6 @@ def is_value_unique(key):
 def is_version_ids_unique(releases):
     is_version_unique = is_value_unique("version")
     return is_version_unique((v for r in releases for v in r["versions"]))
-
-
-def is_series_names_unique(releases):
-    series = [r["series"] for r in releases]
-    return len(series) == len(set(series))
 
 
 sha_regex = r"^[0-9a-f]{40}$"
@@ -106,7 +101,8 @@ component_single_version_schema = Schema(
         "is_product": bool,
         "release": {
             "series": And(str, len),
-            "version": version_schema,
+            "version": version_id_schema,
+            "sha": version_sha_schema,
         },
     }
 )
@@ -179,8 +175,7 @@ comparison_added_component_schema = Schema(
 )
 
 
-def _version_key(version, regex=None):
-    version_id = version["version"]
+def _version_key(version_id, regex=None):
     a_b_map = {
         "alpha": 0,
         "beta": 1,

@@ -8,7 +8,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'component=rpc_component.component:main',
+            'component=rpc_component.cli:main',
         ],
     },
 )
