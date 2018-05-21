@@ -448,3 +448,18 @@ def commit_changes(repo_dir, files, message):
     repo = git.Repo(repo_dir)
     repo.git.add(files)
     repo.git.commit(message=message)
+
+
+def git_http_to_ssh(url):
+    match = re.match(
+        r"https?://github.com/"
+        r"(?P<owner>[a-zA-Z0-9]+-?[a-zA-Z0-9]+)/"
+        r"(?P<name>[a-zA-Z0-9_-]+)(.git)?",
+        url
+    )
+
+    ssh_url = "git@github.com:{owner}/{name}.git".format(
+        owner=match.group("owner"), name=match.group("name")
+    )
+
+    return ssh_url

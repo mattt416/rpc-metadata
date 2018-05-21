@@ -5,6 +5,7 @@ from collections import defaultdict
 from copy import deepcopy
 import os
 import sys
+from tempfile import TemporaryDirectory
 
 import git
 from schema import SchemaError
@@ -36,6 +37,16 @@ def component(releases_dir, components_dir, subparser, **kwargs):
                 "Component '{name}' already exists.".format(
                     name=component_name,
                 )
+            )
+
+        try:
+            with TemporaryDirectory() as tmp_dir:
+                git.Repo.clone_from(
+                    c_lib.git_http_to_ssh(component.repo_url), tmp_dir
+                )
+        except FileNotFoundError as e:
+            raise c_lib.ComponentError(
+                "The repo_url provided is inaccessible, please check."
             )
     elif subparser == "update":
         component = c_lib.Component.from_file(
