@@ -1,4 +1,4 @@
-is_product: false
+is_product: true
 name: rpc-component-2
 releases:
 - series: master
