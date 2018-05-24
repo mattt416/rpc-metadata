@@ -1,4 +1,4 @@
-is_product: false
+is_product: true
 name: rpc-component-2
 releases:
 - series: master
@@ -9,4 +9,6 @@ releases:
     version: r1.1.0
   - sha: abc7e24028e8b52e488e32e1abfff6168c4ac7ff
     version: r1.2.0
+  - sha: e6ddc4ada09d466efe8a0142a1da26588cb9a361
+    version: r1.3.0
 repo_url: https://github.com/mattt416/rpc-component-2
